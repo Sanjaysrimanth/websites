@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bustracer</title>
+  <style>
+    /* CSS Variables & Global Reset */
+    :root {
+      --primary-color: #2c3e50;
+      --secondary-color: #ecf0f1;
+      --accent-color: #e74c3c;
+      --accent-dark: #c0392b;
+      --bg-color: #bdc3c7;
+      --transition-duration: 0.3s;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: var(--bg-color);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--primary-color);
+      padding: 20px;
+    }
+    header {
+      background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+      color: var(--secondary-color);
+      text-align: center;
+      padding: 30px;
+      font-size: 2.5rem;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      animation: fadeInDown 1s ease-out;
+    }
+    .search-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    select,
+    button {
+      padding: 12px;
+      font-size: 1rem;
+      border: 2px solid var(--primary-color);
+      border-radius: 5px;
+      background-color: var(--secondary-color);
+      cursor: pointer;
+      transition: transform var(--transition-duration), border-color var(--transition-duration), background-color var(--transition-duration);
+      outline: none;
+    }
+    select:focus {
+      border-color: var(--accent-color);
+      transform: scale(1.05);
+    }
+    button:hover:not(:disabled) {
+      background-color: var(--accent-dark);
+      transform: scale(1.05);
+    }
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    #messageContainer {
+      text-align: center;
+      color: var(--accent-color);
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    #results {
+      margin-top: 20px;
+      animation: slideIn 0.5s ease-out;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: var(--secondary-color);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      animation: fadeIn 0.8s ease-out;
+    }
+    th, td {
+      padding: 15px;
+      text-align: center;
+      border: 1px solid #ddd;
+      transition: background-color var(--transition-duration);
+    }
+    th {
+      background-color: var(--primary-color);
+      color: var(--secondary-color);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    tr:hover {
+      background-color: #f7f7f7;
+    }
+    /* LiveTrack Buttons Container */
+    #liveTrackButtonsContainer {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+    }
+    .live-track-btn {
+      padding: 10px 20px;
+      font-size: 0.9rem;
+      border: none;
+      border-radius: 5px;
+      background-color: var(--accent-color);
+      color: var(--secondary-color);
+      cursor: pointer;
+      transition: background-color var(--transition-duration), transform var(--transition-duration);
+    }
+    .live-track-btn:hover {
+      background-color: var(--accent-dark);
+      transform: scale(1.05);
+    }
+    /* LiveTrack Image Container */
+    #liveTrackImageContainer {
+      margin-top: 20px;
+      text-align: center;
+      animation: fadeIn 0.8s ease-out;
+    }
+    #liveTrackImageContainer img {
+      max-width: 100%;
+      border: 3px solid var(--primary-color);
+      border-radius: 8px;
+    }
+    /* Keyframe Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideIn {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      header { font-size: 2rem; }
+      .search-container { flex-direction: column; }
+      table, th, td { font-size: 0.9rem; }
+      button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>Bustracer</header>
+  
+  <div class="search-container">
+    <!-- Both Dropdowns Have the Same Options -->
+    <select id="startStop">
+      <option value="">Select Starting Stop</option>
+      <option value="NAD Junction">NAD Junction</option>
+      <option value="RTC Complex">RTC Complex</option>
+      <option value="Yendada">Yendada</option>
+      <option value="Rushikonda">Rushikonda</option>
+    </select>
+    <select id="destStop">
+      <option value="">Select Destination Stop</option>
+      <option value="NAD Junction">NAD Junction</option>
+      <option value="RTC Complex">RTC Complex</option>
+      <option value="Yendada">Yendada</option>
+      <option value="Rushikonda">Rushikonda</option>
+    </select>
+    <button id="searchBtn" disabled>Search</button>
+  </div>
+  
+  <!-- Message Container for Validation -->
+  <div id="messageContainer"></div>
+  
+  <!-- Table for Bus Information -->
+  <div id="results"></div>
+  
+  <!-- Container for LiveTrack Buttons (displayed as columns) -->
+  <div id="liveTrackButtonsContainer"></div>
+  
+  <!-- Container for displaying the LiveTrack image -->
+  <div id="liveTrackImageContainer"></div>
+  
+  <script>
+    const startSelect = document.getElementById('startStop');
+    const destSelect = document.getElementById('destStop');
+    const searchBtn = document.getElementById('searchBtn');
+    const resultsDiv = document.getElementById('results');
+    const messageContainer = document.getElementById('messageContainer');
+    const buttonsContainer = document.getElementById('liveTrackButtonsContainer');
+    const imageContainer = document.getElementById('liveTrackImageContainer');
+
+    // Enable search button only when both stops are selected and not the same
+    function checkSelection() {
+      const start = startSelect.value;
+      const dest = destSelect.value;
+      if (start && dest) {
+        if (start === dest) {
+          messageContainer.textContent = "Starting stop and destination stop cannot be the same.";
+          searchBtn.disabled = true;
+        } else {
+          messageContainer.textContent = "";
+          searchBtn.disabled = false;
+        }
+      } else {
+        messageContainer.textContent = "";
+        searchBtn.disabled = true;
+      }
+    }
+    startSelect.addEventListener('change', checkSelection);
+    destSelect.addEventListener('change', checkSelection);
+
+    // Helper: generate random integer between min and max (inclusive)
+    function getRandomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // Helper: generate a random vehicle number in format "AP 39 XX XXXX"
+    function randomVehicleNumber() {
+      const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      let randomLetters = "";
+      for (let i = 0; i < 2; i++) {
+        randomLetters += letters.charAt(getRandomInt(0, letters.length - 1));
+      }
+      const randomDigits = getRandomInt(1000, 9999);
+      return "AP 39 " + randomLetters + " " + randomDigits;
+    }
+
+    // Helper: choose a random element from an array
+    function randomChoice(arr) {
+      return arr[getRandomInt(0, arr.length - 1)];
+    }
+
+    // Generate sample data (4 bus records) for valid combinations.
+    // For each bus record, randomize arrival time (in min), bus number, bus type, vehicle number, duration, and occupancy.
+    function getSampleData(start, dest) {
+      const busTypes = ["general", "luxury", "metro", "city"];
+      const records = [];
+      for (let i = 0; i < 4; i++) {
+        const arrival = getRandomInt(1, 59) + " min";
+        // Bus number using first letters of stops plus a random three-digit number.
+        const busNum = start.charAt(0).toUpperCase() + dest.charAt(0).toUpperCase() + " " + getRandomInt(100, 999);
+        const busType = randomChoice(busTypes);
+        const vehicleNum = randomVehicleNumber();
+        const duration = getRandomInt(20, 60) + " mins";
+        const occupancy = getRandomInt(40, 100) + "%";
+        records.push({
+          arrivalTime: arrival,
+          busNumber: busNum,
+          busType: busType,
+          vehicleNumber: vehicleNum,
+          duration: duration,
+          occupancy: occupancy
+        });
+      }
+      return records;
+    }
+
+    // Render table with bus records
+    function renderTable(data) {
+      resultsDiv.innerHTML = '';
+      const table = document.createElement('table');
+      const thead = document.createElement('thead');
+      const tbody = document.createElement('tbody');
+
+      // Define headers
+      const headers = ["Arrival Time", "Bus Number", "Bus Type", "Vehicle Number", "Duration of Journey", "Occupancy"];
+      const headerRow = document.createElement('tr');
+      headers.forEach(text => {
+        const th = document.createElement('th');
+        th.textContent = text;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      // Create data rows
+      data.forEach(record => {
+        const row = document.createElement('tr');
+        Object.values(record).forEach(value => {
+          const td = document.createElement('td');
+          td.textContent = value;
+          row.appendChild(td);
+        });
+        tbody.appendChild(row);
+      });
+      table.appendChild(tbody);
+      resultsDiv.appendChild(table);
+    }
+
+    // Render LiveTrack buttons (one per bus record)
+    function renderLiveTrackButtons(data, start, dest) {
+      buttonsContainer.innerHTML = '';
+      data.forEach(record => {
+        const btn = document.createElement('button');
+        btn.textContent = `LiveTrack - ${record.busNumber}`;
+        btn.classList.add('live-track-btn');
+        btn.addEventListener('click', () => {
+          const queryText = encodeURIComponent(`Live Tracking ${start} to ${dest} - ${record.busNumber}`);
+          imageContainer.innerHTML = `<img src="https://via.placeholder.com/600x400?text=${queryText}" alt="Live tracking for ${record.busNumber}" />`;
+        });
+        buttonsContainer.appendChild(btn);
+      });
+    }
+
+    // On clicking search, render table and live track buttons if stops are different.
+    searchBtn.addEventListener('click', () => {
+      const start = startSelect.value;
+      const dest = destSelect.value;
+      if (start !== dest) {
+        const data = getSampleData(start, dest);
+        renderTable(data);
+        renderLiveTrackButtons(data, start, dest);
+        imageContainer.innerHTML = ''; // Clear previous image if any
+      }
+    });
+  </script>
+</body>
+</html>
